@@ -1,266 +1,92 @@
-var traversalNodes = [];
+#include <iostream>
+#include <vector>
 
-var visit = function(node, order) {
-    var nodeData = {
-        node: node,
-        order: order
-    };
-    traversalNodes.push(nodeData);
+using namespace std;
+
+class node{
+	public:
+	int title;
+	bool printed = false;
+	node* left;
+	node* right;
+	node* prev;
 };
 
-// All three traversals at once!  Oh my!
-var depthFirstTraverse = function(node) {
-    visit(node, "PRE_ORDER");
+void traverse(node* nodes);
 
-    if (node.left) {
-        depthFirstTraverse(node.left);
-    }
+int main() {
+	vector <node> nodes(9);
 
-    visit(node, "IN_ORDER");
+	int title[9] = {2,7,5,2,6,9,5,11,4};
+	cout << " Name of Elements ::" << endl;
 
-    if (node.right) {
-        depthFirstTraverse(node.right);
-    }
+	for (int i = 0; i < nodes.size(); i++) {  // assigne the titles too all nodes
+		nodes[i].title = title[i];
+		cout << nodes[i].title << endl;
+	}
+	cout << "End of Naming Elements" << endl;
 
-    visit(node, "POST_ORDER");
-};
+	nodes[0].left  = &nodes[1]; // node 1 has title 2 points left to node title 7
+	nodes[0].right = &nodes[2]; // node 1 has title 2 points tight to node title 5
 
-/////////////////////// TREE CODE //////////////////////////
-var treeHeight = 3;
-var maxCountdown = 15;
+	nodes[1].left  = &nodes[3]; // node 2 title 7 left points to node 4 title 2
+	nodes[1].right = &nodes[4]; // node 2 title 7 right points to node 5 title 6
+	nodes[1].prev  = &nodes[0];
 
-var Node = function(parent) {
-    var node = {
-        left: null,
-        right: null,
-        isLeaf: true,
-        parent: parent,
-        depth: parent ? parent.depth + 1 : 0,
-        x: 0,
-        y: 0,
-        countdown: 0,
-        visited: false,
-        changing: false,
-        label: null
-    };
+	nodes[2].right = &nodes[5]; // node 3 title 5 right points to node 6 title 9
+	nodes[2].prev  = &nodes[0];
 
-    // add children
-    if (node.depth < treeHeight) {
-        node.left = Node(node);
-        node.right = Node(node);
-        node.isLeaf = false;
-    }
+	nodes[3].prev = &nodes[1];
 
-    return node;
-};
+	nodes[4].left = &nodes[6];
+	nodes[4].right= &nodes[7];
+	nodes[4].prev = &nodes[1];
 
-var drawNode = function(node, x, y) {
-    node.x = x;
-    node.y = y;
 
-    // recursively draw children
-    var xDist = 100/pow(2, node.depth);
-    var yDist = 50;
-    if (node.left) {
-        var leftX = x - xDist;
-        var leftY = y + yDist;
-        stroke(255, 255, 255);
-        line(x, y, leftX, leftY);
-        drawNode(node.left, leftX, leftY);
-    }
-    if (node.right) {
-        var rightX = x + xDist;
-        var rightY = y + yDist;
-        stroke(255, 255, 255);
-        line(x, y, rightX, rightY);
-        drawNode(node.right, rightX, rightY);
-    }
+	nodes[5].left = &nodes[8];
+	nodes[5].prev = &nodes[2];
+	nodes[6].prev = &nodes[4];
+	nodes[7].prev = &nodes[4];
+	nodes[8].prev = &nodes[5];
 
-    // draw node highlight, if it is cuurently being visited
-    noStroke();
-    if (node.countdown > 0 && node.changing) {
-        fill(255, 255, 255, node.countdown * 20);
-        ellipse(x, y, 36-node.countdown, 36-node.countdown);
-    }
-    node.countdown--;
+	cout << "BINARY TREE" << endl;
 
-    // draw node
-    var nodeColor = color(0, 205, 232);
-    var visitedColor = color(255, 64, 128);
-    fill(nodeColor);
-    if (node.visited) {
-        if (node.countdown > 0 && node.changing) {
-            var a = 1 - node.countdown / maxCountdown;
-            fill(lerpColor(nodeColor, visitedColor, a));
-        } else {
-            node.changing = false;
-            fill(visitedColor);
-        }
-    }
-    ellipse(x, y, 20, 20);
+	traverse(&nodes[0]);
 
-    // draw node label
-    fill(255, 255, 255);
-    var dx = -4;
-    var dy = 4;
-    if (node.label > 9) {
-        // number is 2 digits
-        dx = -7;
-    }
-    text(node.label, x + dx, y + dy);
-};
+	int jhkhk;
+	cin >> jhkhk;
 
-var resetNode = function(node) {
-    if (!node) {
-        return;
-    }
-    node.countdown = 0;
-    node.visited = false;
-    node.changing = false;
-    node.label = null;
-    resetNode(node.left);
-    resetNode(node.right);
-};
+	return 0;
+}
 
-//////////////////// ANIMATION VARIABLES ///////////////////
-var animating = false;
-var animatingEdge = false;
-var order = null;
-var currIndex = 0;
-var labelCounter = 1;
+void traverse( node* nodes) {
+	if (nodes->printed == false ) { // if the title has not been printed
+		cout << nodes->title << endl;
+		nodes->printed = true;	//set the title to have been printed
+    
+		if (nodes->left != nullptr) { // if there is a child on left
+			traverse(nodes->left);
+		}
+		else if (nodes->right != nullptr) { // if there is a child on the right
+			traverse(nodes->right);
+		}
+		else if (nodes->left == nullptr && nodes->right == nullptr) { // if there are no childrent to right or left
+			if (nodes->prev != nullptr) {
+				cout << " DEADEND" << endl;
+				cout << "STEPPING BACK!" << endl;
+				traverse(nodes->prev); // take one step back
+			}
+		}
+	}
+	else if (nodes->printed == true && nodes->right != nullptr && nodes->right->printed == false) {
+		//if program stepped back once and there is a child not printer to right
+			traverse(nodes->right);
+	}
+	else if (nodes->prev != nullptr) { // if traversed back and all children have been printed then go back again
+		traverse(nodes->prev);
+	}
+	else if (nodes->prev == nullptr) { // if you get here then all chidren have been printed and you are done
+		cout << complete << endl;
+	}
 
-// edge animation variables
-var edgeTimer = 0;
-var edgeDuration = 10;
-var fromNode = null;
-var toNode = null;
-var edgeHilight = {x: 0, y: 0};
-
-// set up tree and run traversals
-var root = Node(null);
-depthFirstTraverse(root);
-
-//////////////////////// BUTTON CODE ///////////////////////
-var drawButtons = function() {
-    strokeWeight(1);
-    stroke(158, 158, 158);
-
-    var unselectedColor = color(201, 201, 201, 90);
-    var selectedColor = color(255, 3, 108, 112);
-
-    if (order === "PRE_ORDER") {
-        fill(selectedColor);
-    } else {
-        fill(unselectedColor);
-    }
-    rect(20, 20, 100, 20, 8);
-
-    if (order === "IN_ORDER") {
-        fill(selectedColor);
-    } else {
-        fill(unselectedColor);
-    }
-    rect(150, 20, 100, 20, 8);
-
-    if (order === "POST_ORDER") {
-        fill(selectedColor);
-    } else {
-        fill(unselectedColor);
-    }
-    rect(280, 20, 100, 20, 8);
-
-    fill(184, 230, 255);
-    text("PRE-ORDER", 35, 35);
-    text("IN-ORDER", 169, 35);
-    text("POST-ORDER", 291, 35);
-};
-
-// this gets called when one of the buttons is clicked
-var startAnimation = function(tourOrder) {
-    if (!animating) {
-        // reset tree
-        resetNode(traversalNodes[0].node);
-
-        // reset animation variables
-        fromNode = root;
-        toNode = root;
-        order = tourOrder;
-        labelCounter = 1;
-
-        // turn on animation
-        animating = true;
-    }
-};
-
-var mouseClicked = function() {
-    if (mouseX > 20 && mouseX < 120 &&
-        mouseY > 20 && mouseY < 40) {
-        startAnimation("PRE_ORDER");
-    }
-    if (mouseX > 150 && mouseX < 250 &&
-        mouseY > 20 && mouseY < 40) {
-        startAnimation("IN_ORDER");
-    }
-    if (mouseX > 280 && mouseX < 380 &&
-        mouseY > 20 && mouseY < 40) {
-        startAnimation("POST_ORDER");
-    }
-};
-
-////////////////////// ANIMATION CODE ///////////////////////
-var draw = function() {
-    background(61, 61, 61);
-    strokeWeight(2);
-
-    if (animating) {
-        if (animatingEdge) {
-            if (edgeTimer < edgeDuration) {
-                var xStep = (toNode.x - fromNode.x);
-                var yStep = (toNode.y - fromNode.y);
-                xStep /= edgeDuration;
-                yStep /= edgeDuration;
-                edgeHilight.x += xStep;
-                edgeHilight.y += yStep;
-                ellipse(edgeHilight.x, edgeHilight.y, 7, 7);
-                edgeTimer++;
-            } else {
-                edgeTimer = 0;
-                animatingEdge = false;
-            }
-        } else {
-            // animating node
-            if (traversalNodes[currIndex]) {
-                var nodeData = traversalNodes[currIndex];
-                var node = nodeData.node;
-
-                // highlight the node
-                if (nodeData.order === order || node.isLeaf){
-                    node.visited = true;
-                    node.changing = true;
-                    node.label = labelCounter++;
-                }
-                noStroke();
-                node.countdown = maxCountdown;
-                if (node.isLeaf) {
-                    currIndex += 3;
-                } else {
-                    currIndex++;
-                }
-                if (traversalNodes[currIndex]) {
-                    // prepare next edge animation
-                    fromNode = node;
-                    toNode = traversalNodes[currIndex].node;
-                    animatingEdge = true;
-                    edgeHilight.x = fromNode.x;
-                    edgeHilight.y = fromNode.y;
-                }
-            } else {
-                animating = false;
-                currIndex = 0;
-            }
-        }
-    }
-
-    drawNode(traversalNodes[0].node, 200, 115);
-    drawButtons();
-};
+}
